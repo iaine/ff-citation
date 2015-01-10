@@ -1,6 +1,11 @@
 <?php
-
-$cite = "Digital facsimile of the Bodleian First Folio of Shakespeare's plays, Arch. G c.7";
+/**
+*  Class for parsing FF functions
+*/
+class ffparse {
+ 
+  // String for the valid citation of the Folio site
+  public $cite = "Digital facsimile of the Bodleian First Folio of Shakespeare's plays, Arch. G c.7";
 
 /**
 *
@@ -15,7 +20,7 @@ $cite = "Digital facsimile of the Bodleian First Folio of Shakespeare's plays, A
 *  @param int $end
 *  Integer for the end line - optional only used for block quotes or 2 line
 */  
-function extract_quotation ($short, $start, $end) {
+  public function extract_quotation ($short, $start, $end) {
 
   $xml_str = open_file($short);
 
@@ -98,7 +103,7 @@ function extract_quotation ($short, $start, $end) {
   $reader->close();
 
   return $lines;
-}
+  }
 
 /**
 *  Convert the short code string into a valid URL
@@ -108,8 +113,10 @@ function extract_quotation ($short, $start, $end) {
 *  @return string
 *  Url of the XML file
 */
-function open_file($code) { 
-   return "http://firstfolio.bodleian.ox.ac.uk/download/xml/F-$code.xml";
-}
+  private function open_file($code) {
+   return 'http://localhost/~iainemsley/text/F-1ham.xml'; 
+   #return "http://firstfolio.bodleian.ox.ac.uk/download/xml/F-$code.xml";
+  }
 
+}
 ?>

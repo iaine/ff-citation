@@ -1,8 +1,7 @@
 <?php
-// should this just be a public string?
-function cite() {
- return "Digital facsimile of the Bodleian First Folio of Shakespeare's plays, Arch. G c.7";
-}
+
+$cite = "Digital facsimile of the Bodleian First Folio of Shakespeare's plays, Arch. G c.7";
+
 
 // extract a line or block quotes
 function extract_quotation ($short, $start, $end) {

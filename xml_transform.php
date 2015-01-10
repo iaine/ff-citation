@@ -2,7 +2,19 @@
 
 $cite = "Digital facsimile of the Bodleian First Folio of Shakespeare's plays, Arch. G c.7";
 
-// extract a line or block quotes
+/**
+*
+*  Function to extract a line or lines from a First Folio text
+*
+*  @param string $short
+*  The First Folio identifier
+*
+*  @param int $start
+*  Integer for the first line (which might be the only one being searched)
+*
+*  @param int $end
+*  Integer for the end line - optional only used for block quotes or 2 line
+*/  
 function extract_quotation ($short, $start, $end) {
 
   $xml_str = open_file($short);
@@ -16,43 +28,71 @@ function extract_quotation ($short, $start, $end) {
   $lines = array();
   $title = '';
   while($reader->read()) {
-  
-  if ($reader->nodeType == XMLReader::ELEMENT && $reader->name == 'title') {
-      if ($reader->getAttribute('type')=='statement' && !$title) {
-          $title = $reader->readString();
-      }
-  } 
+  if ($reader->nodeType == XMLReader::ELEMENT) {
+      if ($reader->name == 'title') {
+          if ($reader->getAttribute('type')=='statement' && !$title) {
+              $title = $reader->readString();
+          }
+      } 
 
-  if ($reader->nodeType == XMLReader::ELEMENT && $reader->name == 'div') {
-        $divtype = $reader->getAttribute('type');
-        if ($divtype == 'act') {
-          $act = $reader->getAttribute('n');
-        }
-        if ($divtype == 'scene') {
-          $scene = $reader->getAttribute('n');
-        }
+      if ($reader->name == 'div') {
+          $divtype = $reader->getAttribute('type');
+          if ($divtype == 'act') {
+             $act = $reader->getAttribute('n');
+          }
+          if ($divtype == 'scene') {
+            $scene = $reader->getAttribute('n');
+          }
       }
 
-    // get the lines
-    if ($reader->nodeType == XMLReader::ELEMENT && ($reader->name == 'l' || $reader->name == 'p')) {
-       $line = $reader->getAttribute('n');
-       $node = new SimpleXMLElement($reader->readOuterXML());
-       if ($end && ($line >=  $start && $line <= $end)) {
-         if ($node->choice) {
-           $lines[] = array('type'=>$reader->name,'title'=>$title,'act'=>$act, 'scene'=> $scene, 'lineno'=> $line, 'text'=>$reader->readString(), 'orig'=>$node->choice->orig, 'corr'=>$node->choice->corr);
-         } else {
-           $lines[] = array('type'=>$reader->name,'title'=>$title,'act'=>$act, 'scene'=> $scene, 'lineno'=> $line, 'text'=>$reader->readString());
-         }
-       } else if ($start && !$end) {
-           if ($line == $start) {
-              if ($node->choice) {
-                $lines[] = array('type'=>$reader->name,'title'=>$title,'act'=>$act, 'scene'=> $scene, 'lineno'=> $line, 'text'=>$reader->readString(), 'orig'=>$node->choice->orig, 'corr'=>$node->choice->corr);
-              } else {
-                $lines[] = array('type'=>$reader->name,'title'=>$title,'act'=>$act, 'scene'=> $scene, 'lineno'=> $line, 'text'=>$reader->readString());
+      // get the lines
+       if (($reader->name == 'l' || $reader->name == 'p')) {
+           $line = $reader->getAttribute('n');
+           $node = new SimpleXMLElement($reader->readOuterXML());
+           if ($end && ($line >=  $start && $line <= $end)) {
+               if ($node->choice) {
+                   $lines[] = array('type'=>$reader->name,
+                                'title'=>$title,
+                                'act'=>$act, 
+                                'scene'=> $scene, 
+                                'lineno'=> $line, 
+                                'text'=>$reader->readString(), 
+                                'orig'=>$node->choice->orig,  
+                                'corr'=>$node->choice->corr,
+                               );
+               } else {
+                   $lines[] = array('type'=>$reader->name,
+                                'title'=>$title,
+                                'act'=>$act, 
+                                'scene'=> $scene, 
+                                'lineno'=> $line, 
+                                'text'=>$reader->readString()
+                               );
+               }
+           } else if ($start && !$end) {
+               if ($line == $start) {
+                  if ($node->choice) {
+                     $lines[] = array('type'=>$reader->name,
+                                  'title'=>$title,
+                                  'act'=>$act, 
+                                  'scene'=> $scene, 
+                                  'lineno'=> $line, 
+                                  'text'=>$reader->readString(), 
+                                  'orig'=>$node->choice->orig, 
+                                  'corr'=>$node->choice->corr
+                                 );
+                  } else {
+                     $lines[] = array('type'=>$reader->name,
+                                  'title'=>$title,
+                                  'act'=>$act, 
+                                  'scene'=> $scene, 
+                                  'lineno'=> $line, 
+                                  'text'=>$reader->readString()
+                                );
+                  }
               }
-           }
-       }
-    }
+          }
+      }
   }
   $reader->close();
 

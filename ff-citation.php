@@ -28,10 +28,15 @@
 include 'xml_transform.php';
 
 //add quotation
-add_shortcode( 'teicite', 'teiquote_shortcode');
+add_shortcode( 'ffcite', 'ffquote_shortcode');
 
-// short code to put in the quote text
-function teiquote_shortcode($atts) {
+/**
+*  Function to add the ffcite shortcode into Wordpress
+*
+*  @param Array $atts
+*  Array of parameters
+*/
+function ffquote_shortcode($atts) {
   extract(
     shortcode_atts(
       array(
@@ -41,31 +46,96 @@ function teiquote_shortcode($atts) {
       ),
       $atts)
   );
- $quote = extract_quotation ($atts['id'], $atts['start'], $atts['end']);
- return format_citation(sizeof($quote), $quote,$atts['id']);
+ $folio = new ffparse();
+ $fmt = new format();
+ $quote = $folio->extract_quotation ($atts['id'], $atts['start'], $atts['end']);
+ return $fmt->format_citation(sizeof($quote), $quote,$atts['id']);
 }
 
-// function to format the quotation
-function format_citation($length, $quotation,$id) {
+class format {
+
+/**
+*  Array mapping the First Folio short codes into the full name
+*/
+private static $title= array(
+     'tem' => 'The Tempest',
+     'tgv' => 'The Two Gentlemen of Verona',
+     'wiv' => 'The Merry Wives of Windsor',
+     'mm'  => 'Measure for Measure',
+     'err' => 'The Comedy of Errors',
+     'ado' => 'Much Ado About Nothing',
+     'lll' => 'Love\'s Labours Lost',
+     'mnd' => 'A Midsummer Night\'s Dream',
+     'mv'  => 'The Merchant of Venice',
+     'ayl' => 'As You Like It',
+     'shr' => 'The Taming of the Shrew',
+     'tn'  => 'Twelfth Night',
+     'wt'  => 'The Winter\'s Tale',
+     'jn'  => 'King John',
+     'r2'  => 'Richard II',
+     '1h4' => 'Henry IV, Part 1',
+     '2h4' => 'Henry IV, Part 2',
+     'h5'  => 'Henry 5',
+     '1h6' => 'Henry VI, Part 1',
+     '2h6' => 'Henry VI, Part 2',
+     'r3'  => 'Richard III',
+     'h8'  => 'Henry VIII',
+     'tro' => 'Troilus and Cressida',
+     'cor' => 'Coriolanus',
+     'tit' => 'Titus Andronicus',
+     'rom' => 'Romeo and Juliet',
+     'tim' => 'Timon of Athens',
+     'jc'  => 'Julius Caesar',
+     'mac' => 'Macbeth',
+     'lr'  => 'King Lear',
+     'oth' => 'Othello',
+     'ant' => 'Antony and Cleopatra',
+     'cym' => 'Cymbeline',
+     'ham' => 'Hamlet',
+   );
+
+/**
+*  Function to format the quotation
+*
+*  @param int $length
+*  The length of the quotations array
+*
+*  @param Array $quotation
+*  The quotation array
+*
+*  @param string $id
+*  The shortcode id from the shortcode
+*
+*  @param Array $title
+*  The array of the titles
+*/
+public function format_citation($length, $quotation,$id) {
+  
   if ($length == '1') {
-    return '"'. format_text($quotation[0]) .'" ' . '[' .format_title($id). '] '. $quotation[0]['title'] .' ('.$quotation[0]['act'].'.' . $quotation[0]['scene'].'.' . $quotation[0]['lineno'].')';
+
+    return '"'. self::format_text($quotation[0]) .'" ' . '[' .self::format_title($id). '] '. $quotation[0]['title'] .' ('.$quotation[0]['act'].'.' . $quotation[0]['scene'].'.' . $quotation[0]['lineno'].')';
+
   } else if ($length == '2') {
-    return '"'. format_text($quotation[0]) . '/'. format_text($quotation[1]) .'" ' . '[' .format_title($id). '] '. $quotation[0]['title'] 
+
+    return '"'. self::format_text($quotation[0]) . '/'. self::format_text($quotation[1]) .'" ' . '[' .self::format_title($id). '] '. $quotation[0]['title'] 
            .' ('.$quotation[0]['act'].'.' . $quotation[0]['scene'] .'.' . $quotation[0]['lineno'] .'-'.$quotation[1]['lineno']. ')'; 
+
   } else {
+
+    $folio = new ffparse();
     $t = '';
     foreach ($quotation as $line=>$text) {
-      $t .= format_text($text) ."<br />";
+      $t .= self::format_text($text) ."<br />";
       $act = $text['act'];
       $scene = $text['scene'];
     }
-    $name = format_title($id);
+    $name = self::format_title($id);
     $title = $quotation[0]['title'];
     $line =  $quotation[0]['lineno'] .'&ndash;'. $quotation[max(array_keys($quotation))]['lineno'];
     return "<blockquote> $t
       <br /><footer>
       [$name] $title ($act . $scene . $line) <br />
-      <a href='http://firstfolio.bodleian.ox.ac.uk'>".cite()."</a>
+      <a href='http://firstfolio.bodleian.ox.ac.uk'>" . $folio->cite . "</a>
       </footer>
       </blockquote>";
   }
@@ -76,7 +146,7 @@ function format_citation($length, $quotation,$id) {
 * @param array
 * $textln is the array slice
 */
-function format_text($textln) {
+public function format_text($textln) {
   if ($textln['orig']) {
     $text = str_replace($textln['orig'], '', $textln['text']);
     return str_replace($textln['corr'], '<span title="'.$textln['orig'].'" style="text-decoration:underline">'.$textln['corr'].'</span>', $text);
@@ -92,42 +162,8 @@ function format_text($textln) {
 * @return string
 * Better known name of the play
 */
-function format_title($id) {
-   $title= array(
-     'tem' => 'The Tempest',
-     'tgv' => 'The Two Gentlemen of Verona',
-     'wiv' => 'The Merry Wives of Windsor',
-     'mm'  => 'Measure for Measure',
-     'err' => 'The Comedy of Errors',
-     'ado' => 'Much Ado About Nothing',
-     'lll' => 'Love\'s Labours Lost',
-     'mnd' => 'A Midsummer Night\'s Dream', 
-     'mv'  => 'The Merchant of Venice',
-     'ayl' => 'As You Like It',
-     'shr' => 'The Taming of the Shrew',
-     'tn'  => 'Twelfth Night',
-     'wt'  => 'The Winter\'s Tale',
-     'jn'  => 'King John',
-     'r2'  => 'Richard II',
-     '1h4' => 'Henry IV, Part 1',
-     '2h4' => 'Henry IV, Part 2',
-     'h5'  => 'Henry 5',
-     '1h6' => 'Henry VI, Part 1',
-     '2h6' => 'Henry VI, Part 2',
-     'r3'  => 'Richard III',
-     'h8'  => 'Henry VIII',
-     'tro' => 'Troilus abd Cressida',
-     'cor' => 'Coriolanus',
-     'tit' => 'Titus Andronicus',
-     'rom' => 'Romeo and Juliet',
-     'tim' => 'Timon of Athens',
-     'jc'  => 'Julius Caesar',
-     'mac' => 'Macbeth',
-     'lr'  => 'King Lear',
-     'oth' => 'Othello',
-     'ant' => 'Antony and Cleopatra',
-     'cym' => 'Cymbeline',
-     'ham' => 'Hamlet',
-   );
-   return $title[$id];
+private function format_title($id) {
+   return self::$title[$id];
+}
+
 }

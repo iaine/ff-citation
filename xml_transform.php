@@ -22,7 +22,7 @@ class ffparse {
 */  
   public function extract_quotation ($short, $start, $end) {
 
-  $xml_str = open_file($short);
+  $xml_str = self::open_file($short);
 
   $reader = new XMLReader();
 

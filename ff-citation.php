@@ -3,7 +3,7 @@
  * Plugin Name: First Folio Citation
  * Plugin URI: 
  * Description: Shortcode to cite the Bodleian first folio data in a post
- * Version: 0.0.1
+ * Version: 0.0.2
  * Author: Iain Emsley
  * Author URI: http://www.austgate.co.uk
  * License: GPL2
@@ -25,7 +25,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-include 'ffparse.php';
+include 'ff-parse.php';
 include 'ff-format.php';
 
 //add quotation

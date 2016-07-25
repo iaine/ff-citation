@@ -114,8 +114,7 @@ class ffparse {
 *  Url of the XML file
 */
   private function open_file($code) {
-   return 'http://localhost/~iainemsley/text/F-1ham.xml'; 
-   #return "http://firstfolio.bodleian.ox.ac.uk/download/xml/F-$code.xml";
+   return "http://firstfolio.bodleian.ox.ac.uk/download/xml/F-$code.xml";
   }
 
 }
